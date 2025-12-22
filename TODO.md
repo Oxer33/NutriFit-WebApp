@@ -44,6 +44,19 @@
 - [x] **StepCounter** - Contapassi con progress circolare
 - [x] **WaterReminder** - Promemoria acqua con notifiche browser
 
+### 🆕 Nuove Features v2.0
+- [x] **CopyMealsDialog** - Copia pasti da un giorno precedente
+- [x] **SaveMealsDialog** - Salva pasti come template riutilizzabile
+- [x] **WeightHistoryDialog** - Storico peso con foto e note
+- [x] **CustomFoodsManager** - Gestione alimenti personalizzati
+- [x] **MenstrualCycleDialog** - Tracking ciclo mestruale con previsioni
+- [x] **DietarySurveyDialog** - Indagine alimentare personalizzata
+- [x] **BarcodeScanner** - Scanner codici a barre con OpenFoodFacts API
+- [x] **CalorieGauge** - Tachimetro visivo calorie consumate
+- [x] **MacroGauge** - Gauge circolari per macronutrienti
+- [x] **Eliminazione alimenti** - Rimuovi alimenti dai pasti
+- [x] **Eliminazione attività** - Rimuovi attività dal diario
+
 ### 📦 Database Locali
 - [x] Database alimenti (1400+ items) da CSV originale
 - [x] Database attività fisiche (100+ items) con valori MET
