@@ -219,6 +219,7 @@ const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 | `WeightHistoryDialog` | Storico peso con foto e note |
 | `CustomFoodsManager` | Crea/modifica alimenti personalizzati |
 | `MenstrualCycleDialog` | Tracking ciclo mestruale con previsioni |
+| `DietarySurveyDialog` | Indagine alimentare personalizzata per tipo dieta |
 | `CalorieGauge` | Tachimetro visivo calorie consumate |
 | `MacroGauge` | Gauge circolari per macronutrienti |
 
