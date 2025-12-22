@@ -245,6 +245,32 @@ const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 ---
 
+## 🏥 Formule Mediche Verificate
+
+Le formule di calcolo calorico sono state sviluppate con consulenza medica:
+
+### Normalizzazione Peso (BMI)
+- **Donne**: se BMI > 23 → peso normalizzato = 23 × altezza²
+- **Uomini**: se BMI > 25 → peso normalizzato = 25 × altezza²
+
+### Moltiplicatori Calorici
+```
+           SEDENTARIO              ATTIVO
+           Perdere|Mantenere|Aumentare  Perdere|Mantenere|Aumentare
+DONNA:       26   |   31    |   36        30   |   35    |   40
+UOMO:        25   |   30    |   35        35   |   40    |   45
+```
+
+### Formula Finale
+```
+Calorie = (Peso normalizzato × Moltiplicatore) - 150
+```
+Il -150 compensa un pasto libero settimanale (~1000 kcal / 7 giorni).
+
+⚠️ **ATTENZIONE**: Queste formule sono state verificate da un medico nutrizionista. Non modificare senza verifica medica.
+
+---
+
 ## 🚀 Comandi
 
 ```bash

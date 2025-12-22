@@ -62,6 +62,13 @@
 - [x] **ConversationsList** - Storico conversazioni AI con selezione/eliminazione
 - [x] **WaterReminderConfigDialog** - Configurazione avanzata promemoria acqua
 
+### 🆕 Nuove Features v3.0 (Ristrutturazione)
+- [x] **Formule mediche verificate** - Calcolo calorico con consulenza medica
+- [x] **Homepage rinnovata** - Team medici/ingegneri, recensioni realistiche
+- [x] **Struttura semplificata** - Solo Home, App, Onboarding (rimosso blog, chi-sono, contatti, servizi)
+- [x] **Indicatore eccesso macro** - Avviso quando si supera 120% di proteine/carb/grassi
+- [x] **Provenienza alimenti** - Badge CREA 🇮🇹 per database locale, OpenFoodFacts 🌍 per scansioni
+
 ### 📦 Database Locali
 - [x] Database alimenti (1400+ items) da CSV originale
 - [x] Database attività fisiche (100+ items) con valori MET
