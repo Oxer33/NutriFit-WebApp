@@ -218,11 +218,105 @@ export const OnboardingSteps: OnboardingStep[] = [
 ]
 
 // ============================================
-// CALCULATION HELPERS
+// CALCULATION HELPERS - FORMULE MEDICHE VERIFICATE
+// ============================================
+// IMPORTANTE: Queste formule sono state sviluppate con la consulenza
+// di un medico nutrizionista. NON modificare senza verifica medica.
 // ============================================
 
 /**
- * Calcola il BMR (Metabolismo Basale) con formula Harris-Benedict
+ * Calcola il BMI (Body Mass Index)
+ */
+export function calculateBMI(weightKg: number, heightCm: number): number {
+  const heightM = heightCm / 100
+  return Math.round((weightKg / (heightM * heightM)) * 10) / 10
+}
+
+/**
+ * Normalizza il peso in base al BMI per il calcolo calorico.
+ * FORMULA MEDICA VERIFICATA:
+ * - Donne: se BMI > 23 → peso normalizzato = 23 × altezza²
+ * - Uomini: se BMI > 25 → peso normalizzato = 25 × altezza²
+ */
+export function getNormalizedWeight(profile: UserProfile): number {
+  const { gender, weightKg, heightCm } = profile
+  const heightM = heightCm / 100
+  const bmi = weightKg / (heightM * heightM)
+  
+  if (gender === 'F' && bmi > 23) {
+    // Donne con BMI > 23: normalizza a BMI 23
+    return 23 * (heightM * heightM)
+  } else if (gender === 'M' && bmi > 25) {
+    // Uomini con BMI > 25: normalizza a BMI 25
+    return 25 * (heightM * heightM)
+  }
+  
+  // Peso normale, usa il peso reale
+  return weightKg
+}
+
+/**
+ * Ottiene il moltiplicatore calorico in base a genere, attività e obiettivo.
+ * TABELLA MEDICA VERIFICATA:
+ * 
+ *            SEDENTARIO              ATTIVO
+ *            Perdere|Mantenere|Aumentare  Perdere|Mantenere|Aumentare
+ * DONNA:       26   |   31    |   36        30   |   35    |   40
+ * UOMO:        25   |   30    |   35        35   |   40    |   45
+ */
+export function getCalorieMultiplier(profile: UserProfile): number {
+  const { gender, activityLevel, goal } = profile
+  
+  // DONNA SEDENTARIA
+  if (gender === 'F' && activityLevel === 'SEDENTARY') {
+    if (goal === 'LOSE_WEIGHT') return 26
+    if (goal === 'MAINTAIN') return 31
+    if (goal === 'GAIN_WEIGHT') return 36
+  }
+  
+  // DONNA ATTIVA
+  if (gender === 'F' && activityLevel === 'ACTIVE') {
+    if (goal === 'LOSE_WEIGHT') return 30
+    if (goal === 'MAINTAIN') return 35
+    if (goal === 'GAIN_WEIGHT') return 40
+  }
+  
+  // UOMO SEDENTARIO
+  if (gender === 'M' && activityLevel === 'SEDENTARY') {
+    if (goal === 'LOSE_WEIGHT') return 25
+    if (goal === 'MAINTAIN') return 30
+    if (goal === 'GAIN_WEIGHT') return 35
+  }
+  
+  // UOMO ATTIVO
+  if (gender === 'M' && activityLevel === 'ACTIVE') {
+    if (goal === 'LOSE_WEIGHT') return 35
+    if (goal === 'MAINTAIN') return 40
+    if (goal === 'GAIN_WEIGHT') return 45
+  }
+  
+  // Default per genere non specificato
+  return 30
+}
+
+/**
+ * Calcola il fabbisogno calorico giornaliero stimato.
+ * FORMULA MEDICA VERIFICATA:
+ * Calorie = (Peso normalizzato × Moltiplicatore) - 150
+ * 
+ * Il -150 compensa un pasto libero settimanale (circa 1000 kcal / 7 giorni)
+ */
+export function calculateDailyCalories(profile: UserProfile): number {
+  const normalizedWeight = getNormalizedWeight(profile)
+  const multiplier = getCalorieMultiplier(profile)
+  
+  // Formula: (Peso × moltiplicatore) - 150
+  return Math.round((normalizedWeight * multiplier) - 150)
+}
+
+/**
+ * Calcola il BMR (Metabolismo Basale) con formula Harris-Benedict.
+ * Usato solo per visualizzazione, non per il calcolo dell'obiettivo calorico.
  */
 export function calculateBMR(profile: UserProfile): number {
   const { gender, weightKg, heightCm, age } = profile
@@ -238,7 +332,8 @@ export function calculateBMR(profile: UserProfile): number {
 }
 
 /**
- * Calcola il TDEE (Total Daily Energy Expenditure)
+ * Calcola il TDEE (Total Daily Energy Expenditure) con Harris-Benedict.
+ * Usato solo per visualizzazione, non per il calcolo dell'obiettivo calorico.
  */
 export function calculateTDEE(profile: UserProfile): number {
   const bmr = calculateBMR(profile)
@@ -247,38 +342,11 @@ export function calculateTDEE(profile: UserProfile): number {
 }
 
 /**
- * Calcola l'obiettivo calorico giornaliero
+ * Calcola l'obiettivo calorico giornaliero.
+ * USA LE FORMULE MEDICHE VERIFICATE, non Harris-Benedict.
  */
 export function calculateCalorieGoal(profile: UserProfile): number {
-  const tdee = calculateTDEE(profile)
-  
-  // Calcola il deficit/surplus in base al tasso di variazione
-  const weeklyChangeKg = {
-    'RATE_025': 0.25,
-    'RATE_05': 0.5,
-    'RATE_075': 0.75,
-    'RATE_1': 1.0
-  }[profile.weightChangeRate]
-  
-  // 1 kg di grasso = ~7700 kcal
-  const dailyChange = (weeklyChangeKg * 7700) / 7
-  
-  switch (profile.goal) {
-    case 'LOSE_WEIGHT':
-      return Math.round(tdee - dailyChange)
-    case 'GAIN_WEIGHT':
-      return Math.round(tdee + dailyChange)
-    default:
-      return tdee
-  }
-}
-
-/**
- * Calcola il BMI
- */
-export function calculateBMI(weightKg: number, heightCm: number): number {
-  const heightM = heightCm / 100
-  return Math.round((weightKg / (heightM * heightM)) * 10) / 10
+  return calculateDailyCalories(profile)
 }
 
 /**
