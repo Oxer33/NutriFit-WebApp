@@ -33,7 +33,8 @@ import {
   Apple,
   Calendar,
   Languages,
-  History
+  History,
+  ClipboardList
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
@@ -47,6 +48,7 @@ import {
 import { WeightHistoryDialog } from '@/components/app/WeightHistoryDialog'
 import { CustomFoodsManager } from '@/components/app/CustomFoodsManager'
 import { MenstrualCycleDialog } from '@/components/app/MenstrualCycleDialog'
+import { DietarySurveyDialog } from '@/components/app/DietarySurveyDialog'
 
 // =========== COMPONENT ===========
 
@@ -58,6 +60,7 @@ export function ProfileTab() {
   const [showWeightHistory, setShowWeightHistory] = useState(false)
   const [showCustomFoods, setShowCustomFoods] = useState(false)
   const [showMenstrualCycle, setShowMenstrualCycle] = useState(false)
+  const [showDietarySurvey, setShowDietarySurvey] = useState(false)
   
   // Calcoli metabolici
   const bmi = useMemo(() => {
@@ -299,6 +302,12 @@ export function ProfileTab() {
             onClick={() => setShowMenstrualCycle(true)}
           />
         )}
+        <SettingItem
+          icon={ClipboardList}
+          label="Indagine Alimentare"
+          value="Compila"
+          onClick={() => setShowDietarySurvey(true)}
+        />
       </motion.div>
 
       {/* Settings Section */}
@@ -341,6 +350,11 @@ export function ProfileTab() {
       <MenstrualCycleDialog
         isOpen={showMenstrualCycle}
         onClose={() => setShowMenstrualCycle(false)}
+      />
+      
+      <DietarySurveyDialog
+        isOpen={showDietarySurvey}
+        onClose={() => setShowDietarySurvey(false)}
       />
     </div>
   )
