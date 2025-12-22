@@ -221,6 +221,8 @@ const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 | `MenstrualCycleDialog` | Tracking ciclo mestruale con previsioni |
 | `DietarySurveyDialog` | Indagine alimentare personalizzata per tipo dieta |
 | `BarcodeScanner` | Scanner codici a barre con OpenFoodFacts API |
+| `ConversationsList` | Storico conversazioni AI con selezione/eliminazione |
+| `WaterReminderConfigDialog` | Configurazione avanzata promemoria acqua |
 | `CalorieGauge` | Tachimetro visivo calorie consumate |
 | `MacroGauge` | Gauge circolari per macronutrienti |
 

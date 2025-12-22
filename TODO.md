@@ -57,6 +57,11 @@
 - [x] **Eliminazione alimenti** - Rimuovi alimenti dai pasti
 - [x] **Eliminazione attività** - Rimuovi attività dal diario
 
+### 🆕 Nuove Features v2.1
+- [x] **Porzioni predefinite** - Cucchiaio, tazza, fetta, bicchiere in AddFoodModal
+- [x] **ConversationsList** - Storico conversazioni AI con selezione/eliminazione
+- [x] **WaterReminderConfigDialog** - Configurazione avanzata promemoria acqua
+
 ### 📦 Database Locali
 - [x] Database alimenti (1400+ items) da CSV originale
 - [x] Database attività fisiche (100+ items) con valori MET
