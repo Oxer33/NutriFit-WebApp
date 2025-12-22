@@ -49,6 +49,7 @@ import { WeightHistoryDialog } from '@/components/app/WeightHistoryDialog'
 import { CustomFoodsManager } from '@/components/app/CustomFoodsManager'
 import { MenstrualCycleDialog } from '@/components/app/MenstrualCycleDialog'
 import { DietarySurveyDialog } from '@/components/app/DietarySurveyDialog'
+import { WaterReminderConfigDialog } from '@/components/app/WaterReminderConfigDialog'
 
 // =========== COMPONENT ===========
 
@@ -61,6 +62,7 @@ export function ProfileTab() {
   const [showCustomFoods, setShowCustomFoods] = useState(false)
   const [showMenstrualCycle, setShowMenstrualCycle] = useState(false)
   const [showDietarySurvey, setShowDietarySurvey] = useState(false)
+  const [showWaterReminderConfig, setShowWaterReminderConfig] = useState(false)
   
   // Calcoli metabolici
   const bmi = useMemo(() => {
@@ -332,7 +334,8 @@ export function ProfileTab() {
         <SettingItem
           icon={Settings}
           label="Promemoria Acqua"
-          value="Ogni 60 min"
+          value="Configura"
+          onClick={() => setShowWaterReminderConfig(true)}
         />
       </motion.div>
       
@@ -355,6 +358,11 @@ export function ProfileTab() {
       <DietarySurveyDialog
         isOpen={showDietarySurvey}
         onClose={() => setShowDietarySurvey(false)}
+      />
+      
+      <WaterReminderConfigDialog
+        isOpen={showWaterReminderConfig}
+        onClose={() => setShowWaterReminderConfig(false)}
       />
     </div>
   )
