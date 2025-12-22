@@ -64,10 +64,17 @@ nutrifit-webapp/
 │   │   │   ├── AddActivityModal.tsx # Modal aggiunta attività fisica
 │   │   │   ├── StepCounter.tsx     # Contapassi web-based
 │   │   │   ├── WaterReminder.tsx   # Promemoria idratazione
+│   │   │   ├── CopyMealsDialog.tsx # Dialog copia pasti da altro giorno
+│   │   │   ├── SaveMealsDialog.tsx # Dialog salva pasti come template
+│   │   │   ├── WeightHistoryDialog.tsx # Storico peso con foto
+│   │   │   ├── CustomFoodsManager.tsx  # Gestione alimenti personalizzati
+│   │   │   ├── MenstrualCycleDialog.tsx # Tracking ciclo mestruale
+│   │   │   ├── CalorieGauge.tsx    # Tachimetro calorie (gauge visivo)
+│   │   │   ├── MacroGauge.tsx      # Gauge macronutrienti circolari
 │   │   │   └── tabs/
-│   │   │       ├── DiaryTab.tsx    # Diario alimentare (6 pasti)
+│   │   │       ├── DiaryTab.tsx    # Diario alimentare (6 pasti + macros)
 │   │   │       ├── AITab.tsx       # Chat AI nutrizionista
-│   │   │       ├── ProfileTab.tsx  # Profilo con BMI/BMR/TDEE
+│   │   │       ├── ProfileTab.tsx  # Profilo con BMI/BMR/TDEE + tools
 │   │   │       └── StatsTab.tsx    # Grafici e statistiche
 │   │   │
 │   │   ├── about/              # Componenti Chi Sono
@@ -199,6 +206,38 @@ const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 | `/servizi` | ServiziPage | Lista servizi offerti |
 | `/blog` | BlogPage | Articoli e risorse |
 | `/contatti` | ContattiPage | Form di contatto |
+
+---
+
+## 🆕 Nuove Features (v2.0)
+
+### Dialogs e Strumenti
+| Componente | Funzionalità |
+|------------|--------------|
+| `CopyMealsDialog` | Copia pasti da un giorno precedente |
+| `SaveMealsDialog` | Salva pasti come template riutilizzabile |
+| `WeightHistoryDialog` | Storico peso con foto e note |
+| `CustomFoodsManager` | Crea/modifica alimenti personalizzati |
+| `MenstrualCycleDialog` | Tracking ciclo mestruale con previsioni |
+| `CalorieGauge` | Tachimetro visivo calorie consumate |
+| `MacroGauge` | Gauge circolari per macronutrienti |
+
+### Funzionalità DiaryTab
+- ✅ 6 tipi di pasto (colazione, spuntini, pranzo, cena, extra)
+- ✅ Copia/Salva pasti
+- ✅ Eliminazione alimenti con swipe
+- ✅ Eliminazione attività
+- ✅ Gauge macronutrienti (proteine, carboidrati, grassi)
+- ✅ Progress bar calorie
+- ✅ Tracker acqua interattivo
+- ✅ Contapassi con calcolo calorie
+
+### Funzionalità ProfileTab
+- ✅ Calcoli BMI, BMR, TDEE automatici
+- ✅ Storico peso con foto
+- ✅ Alimenti personalizzati
+- ✅ Ciclo mestruale (solo donne)
+- ✅ Impostazioni notifiche
 
 ---
 

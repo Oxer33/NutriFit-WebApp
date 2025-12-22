@@ -54,6 +54,10 @@ import {
 } from '@/types'
 import { AddFoodModal } from '@/components/app/AddFoodModal'
 import { AddActivityModal } from '@/components/app/AddActivityModal'
+import { CopyMealsDialog } from '@/components/app/CopyMealsDialog'
+import { SaveMealsDialog } from '@/components/app/SaveMealsDialog'
+import { CalorieGauge } from '@/components/app/CalorieGauge'
+import { MacroCircles } from '@/components/app/MacroGauge'
 
 // =========== TYPES ===========
 
@@ -85,6 +89,8 @@ export function DiaryTab() {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [showAddFoodModal, setShowAddFoodModal] = useState(false)
   const [showAddActivityModal, setShowAddActivityModal] = useState(false)
+  const [showCopyMealsDialog, setShowCopyMealsDialog] = useState(false)
+  const [showSaveMealsDialog, setShowSaveMealsDialog] = useState(false)
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null)
   
   // Store
@@ -93,7 +99,9 @@ export function DiaryTab() {
     getDailyData, 
     addWaterGlass, 
     removeWaterGlass,
-    setSteps 
+    setSteps,
+    removeFoodFromMeal,
+    deleteActivity
   } = useAppStore()
   
   // Data for selected date
@@ -122,6 +130,22 @@ export function DiaryTab() {
   
   const remainingCalories = targetCalories - consumedCalories + burnedCalories
   const calorieProgress = (consumedCalories / targetCalories) * 100
+  
+  // Calcola macronutrienti totali
+  const totalMacros = useMemo(() => {
+    return dailyData.meals.reduce((acc, meal) => ({
+      protein: acc.protein + meal.totalProtein,
+      carbs: acc.carbs + meal.totalCarbs,
+      fat: acc.fat + meal.totalFat
+    }), { protein: 0, carbs: 0, fat: 0 })
+  }, [dailyData.meals])
+  
+  // Target macros (basati su TDEE)
+  const macroTargets = useMemo(() => ({
+    protein: Math.round((targetCalories * 0.25) / 4), // 25% proteine
+    carbs: Math.round((targetCalories * 0.50) / 4),   // 50% carboidrati  
+    fat: Math.round((targetCalories * 0.25) / 9)      // 25% grassi
+  }), [targetCalories])
 
   const goToPreviousDay = () => setSelectedDate(prev => subDays(prev, 1))
   const goToNextDay = () => setSelectedDate(prev => addDays(prev, 1))
@@ -252,9 +276,40 @@ export function DiaryTab() {
         </div>
       </motion.div>
 
+      {/* Macronutrients Summary */}
+      <motion.div 
+        className="glass-card p-5"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <h3 className="font-semibold text-gray-900 mb-4">Macronutrienti</h3>
+        <MacroCircles data={{
+          protein: { current: totalMacros.protein, target: macroTargets.protein },
+          carbs: { current: totalMacros.carbs, target: macroTargets.carbs },
+          fat: { current: totalMacros.fat, target: macroTargets.fat }
+        }} />
+      </motion.div>
+
       {/* 6 Meal Cards - Grid Layout */}
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900 px-1">Pasti del giorno</h2>
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-lg font-semibold text-gray-900">Pasti del giorno</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowCopyMealsDialog(true)}
+              className="text-xs px-3 py-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+            >
+              📋 Copia
+            </button>
+            <button
+              onClick={() => setShowSaveMealsDialog(true)}
+              className="text-xs px-3 py-1.5 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+            >
+              💾 Salva
+            </button>
+          </div>
+        </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {(Object.keys(MealTypeInfo) as MealType[]).map((type, index) => (
             <MealCard
@@ -262,6 +317,7 @@ export function DiaryTab() {
               type={type}
               meals={getMealsForType(type)}
               onAddFood={handleAddFood}
+              onRemoveFood={(mealId, foodId) => removeFoodFromMeal(dateString, mealId, foodId)}
             />
           ))}
         </div>
@@ -408,12 +464,20 @@ export function DiaryTab() {
         {dailyData.activities.length > 0 ? (
           <div className="space-y-2">
             {dailyData.activities.map((activity, index) => (
-              <div key={activity.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+              <div key={activity.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl group">
                 <div>
                   <p className="font-medium text-gray-900">{activity.name}</p>
                   <p className="text-sm text-gray-500">{activity.durationMinutes} min</p>
                 </div>
-                <span className="font-semibold text-orange-500">-{activity.caloriesBurned} kcal</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-orange-500">-{activity.caloriesBurned} kcal</span>
+                  <button
+                    onClick={() => deleteActivity(dateString, activity.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -450,13 +514,33 @@ export function DiaryTab() {
         onClose={() => setShowAddActivityModal(false)}
         date={dateString}
       />
+      
+      {/* Copy Meals Dialog */}
+      <CopyMealsDialog
+        isOpen={showCopyMealsDialog}
+        onClose={() => setShowCopyMealsDialog(false)}
+        targetDate={dateString}
+        onMealsCopied={() => {
+          // Refresh avviene automaticamente tramite store
+        }}
+      />
+      
+      {/* Save Meals Dialog */}
+      <SaveMealsDialog
+        isOpen={showSaveMealsDialog}
+        onClose={() => setShowSaveMealsDialog(false)}
+        sourceDate={dateString}
+        onMealsSaved={() => {
+          // Notifica salvato
+        }}
+      />
     </div>
   )
 }
 
 // =========== MEAL CARD COMPONENT ===========
 
-function MealCard({ type, meals, onAddFood }: MealCardProps) {
+function MealCard({ type, meals, onAddFood, onRemoveFood }: MealCardProps) {
   const config = MEAL_CONFIGS[type]
   const info = MealTypeInfo[type]
   const Icon = config.icon
@@ -464,8 +548,10 @@ function MealCard({ type, meals, onAddFood }: MealCardProps) {
   // Calcola totale calorie per questo tipo di pasto
   const totalCalories = meals.reduce((sum, meal) => sum + meal.totalCalories, 0)
   
-  // Ottieni tutti gli alimenti da tutti i pasti di questo tipo
-  const allFoodItems = meals.flatMap(meal => meal.foodItems)
+  // Ottieni tutti gli alimenti da tutti i pasti di questo tipo con riferimento al meal
+  const allFoodItems = meals.flatMap(meal => 
+    meal.foodItems.map(food => ({ ...food, mealId: meal.id }))
+  )
   const isEmpty = allFoodItems.length === 0
 
   return (
@@ -508,14 +594,24 @@ function MealCard({ type, meals, onAddFood }: MealCardProps) {
       ) : (
         <ul className="space-y-1.5 max-h-32 overflow-y-auto">
           {allFoodItems.slice(0, 4).map((food, index) => (
-            <li key={food.id || index} className="flex items-center justify-between text-xs">
+            <li key={food.id || index} className="flex items-center justify-between text-xs group/item">
               <div className="flex items-center gap-2 text-gray-600 truncate">
                 <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
                 <span className="truncate">{food.name}</span>
               </div>
-              <span className="text-gray-400 flex-shrink-0 ml-2">
-                {Math.round((food.calories * food.quantity) / 100)} kcal
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-400 flex-shrink-0">
+                  {Math.round((food.calories * food.quantity) / 100)} kcal
+                </span>
+                {onRemoveFood && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onRemoveFood(food.mealId, food.id) }}
+                    className="p-0.5 text-gray-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
             </li>
           ))}
           {allFoodItems.length > 4 && (

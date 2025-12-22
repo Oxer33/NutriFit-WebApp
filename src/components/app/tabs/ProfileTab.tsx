@@ -12,7 +12,7 @@
  * - Impostazioni app
  */
 
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { 
   User, 
@@ -29,7 +29,11 @@ import {
   Edit3,
   Flame,
   Zap,
-  Heart
+  Heart,
+  Apple,
+  Calendar,
+  Languages,
+  History
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
@@ -40,12 +44,20 @@ import {
   calculateTDEE,
   calculateCalorieGoal 
 } from '@/types'
+import { WeightHistoryDialog } from '@/components/app/WeightHistoryDialog'
+import { CustomFoodsManager } from '@/components/app/CustomFoodsManager'
+import { MenstrualCycleDialog } from '@/components/app/MenstrualCycleDialog'
 
 // =========== COMPONENT ===========
 
 export function ProfileTab() {
   // Store
   const { profile } = useAppStore()
+  
+  // Dialog states
+  const [showWeightHistory, setShowWeightHistory] = useState(false)
+  const [showCustomFoods, setShowCustomFoods] = useState(false)
+  const [showMenstrualCycle, setShowMenstrualCycle] = useState(false)
   
   // Calcoli metabolici
   const bmi = useMemo(() => {
@@ -258,6 +270,37 @@ export function ProfileTab() {
         </div>
       </motion.div>
 
+      {/* Tools Section */}
+      <motion.div
+        className="glass-card overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.42 }}
+      >
+        <h3 className="font-semibold text-gray-900 p-4 border-b border-gray-100">Strumenti</h3>
+        
+        <SettingItem
+          icon={History}
+          label="Storico Peso"
+          value="Visualizza"
+          onClick={() => setShowWeightHistory(true)}
+        />
+        <SettingItem
+          icon={Apple}
+          label="Alimenti Personalizzati"
+          value="Gestisci"
+          onClick={() => setShowCustomFoods(true)}
+        />
+        {profile.gender === 'F' && (
+          <SettingItem
+            icon={Calendar}
+            label="Ciclo Mestruale"
+            value="Traccia"
+            onClick={() => setShowMenstrualCycle(true)}
+          />
+        )}
+      </motion.div>
+
       {/* Settings Section */}
       <motion.div
         className="glass-card overflow-hidden"
@@ -283,6 +326,22 @@ export function ProfileTab() {
           value="Ogni 60 min"
         />
       </motion.div>
+      
+      {/* Dialogs */}
+      <WeightHistoryDialog
+        isOpen={showWeightHistory}
+        onClose={() => setShowWeightHistory(false)}
+      />
+      
+      <CustomFoodsManager
+        isOpen={showCustomFoods}
+        onClose={() => setShowCustomFoods(false)}
+      />
+      
+      <MenstrualCycleDialog
+        isOpen={showMenstrualCycle}
+        onClose={() => setShowMenstrualCycle(false)}
+      />
     </div>
   )
 }
@@ -321,11 +380,12 @@ interface SettingItemProps {
   icon: React.ComponentType<{ className?: string }>
   label: string
   value: string
+  onClick?: () => void
 }
 
-function SettingItem({ icon: Icon, label, value }: SettingItemProps) {
+function SettingItem({ icon: Icon, label, value, onClick }: SettingItemProps) {
   return (
-    <button className="w-full flex items-center justify-between p-4 hover:bg-white/50 transition-colors border-b border-gray-50 last:border-0">
+    <button onClick={onClick} className="w-full flex items-center justify-between p-4 hover:bg-white/50 transition-colors border-b border-gray-50 last:border-0">
       <div className="flex items-center gap-3">
         <Icon className="w-5 h-5 text-gray-400" />
         <span className="text-gray-700">{label}</span>
