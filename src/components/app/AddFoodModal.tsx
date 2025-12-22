@@ -22,7 +22,8 @@ import {
   Utensils,
   Flame,
   Apple,
-  Check
+  Check,
+  Barcode
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
@@ -34,6 +35,7 @@ import {
   MealTypeInfo,
   generateId 
 } from '@/types'
+import { BarcodeScanner } from '@/components/app/BarcodeScanner'
 
 // =========== PROPS ===========
 
@@ -51,6 +53,7 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
   const [selectedFood, setSelectedFood] = useState<FoodFromDB | null>(null)
   const [quantity, setQuantity] = useState(100)
   const [isAdding, setIsAdding] = useState(false)
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   
   // Store
@@ -152,6 +155,22 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
     setSelectedFood(food)
     setSearchQuery('')
   }
+  
+  // Handler per prodotto trovato da barcode scanner
+  const handleBarcodeProduct = (food: Partial<FoodItem>) => {
+    // Converte il prodotto OpenFoodFacts in FoodFromDB format
+    const foodFromDB: FoodFromDB = {
+      name: food.name || 'Prodotto',
+      calories: food.calories || 0,
+      protein: food.protein || 0,
+      carbs: food.carbs || 0,
+      fat: food.fat || 0,
+      fiber: food.fiber || 0,
+      sugar: 0 // OpenFoodFacts potrebbe non avere questo dato
+    }
+    setSelectedFood(foodFromDB)
+    setShowBarcodeScanner(false)
+  }
 
   if (!isOpen) return null
 
@@ -193,16 +212,25 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
               
               {/* Search */}
               <div className="p-4 border-b border-gray-100 flex-shrink-0">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cerca alimento (es. pasta, pollo, mela...)"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Cerca alimento..."
+                      className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setShowBarcodeScanner(true)}
+                    className="p-3 bg-blue-100 text-blue-600 rounded-xl hover:bg-blue-200 transition-colors"
+                    title="Scansiona codice a barre"
+                  >
+                    <Barcode className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
               
@@ -411,6 +439,13 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
           </motion.div>
         </>
       )}
+      
+      {/* Barcode Scanner */}
+      <BarcodeScanner
+        isOpen={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        onProductFound={handleBarcodeProduct}
+      />
     </AnimatePresence>
   )
 }
