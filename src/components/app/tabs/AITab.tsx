@@ -31,11 +31,13 @@ import {
   Zap,
   Apple,
   Scale,
-  Dumbbell
+  Dumbbell,
+  History
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 import { chat, generateMealPlan, analyzeDiet, type ChatMessage as APIChatMessage } from '@/lib/openrouter'
+import { ConversationsList } from '@/components/app/ConversationsList'
 
 // =========== TYPES ===========
 
@@ -102,10 +104,11 @@ export function AITab() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [conversationHistory, setConversationHistory] = useState<APIChatMessage[]>([])
+  const [showConversationsList, setShowConversationsList] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  // Store per profilo utente
-  const { profile, getDailyData } = useAppStore()
+  // Store per profilo utente e conversazioni
+  const { profile, getDailyData, conversations, setCurrentConversation, currentConversationId } = useAppStore()
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -209,9 +212,16 @@ Acqua: ${todayData.waterGlasses}/8 bicchieri | Passi: ${todayData.steps}`
 
   return (
     <div className="flex flex-col h-[calc(100vh-300px)] min-h-[500px]">
-      {/* Header con Reset */}
-      {messages.length > 1 && (
-        <div className="flex justify-end mb-2">
+      {/* Header con History e Reset */}
+      <div className="flex justify-between items-center mb-2">
+        <button
+          onClick={() => setShowConversationsList(true)}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+        >
+          <History className="w-4 h-4" />
+          Storico ({conversations.length})
+        </button>
+        {messages.length > 1 && (
           <button
             onClick={handleClearChat}
             className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -219,8 +229,8 @@ Acqua: ${todayData.waterGlasses}/8 bicchieri | Passi: ${todayData.steps}`
             <Trash2 className="w-4 h-4" />
             Nuova chat
           </button>
-        </div>
-      )}
+        )}
+      </div>
       
       {/* Error Banner */}
       {error && (
@@ -321,6 +331,26 @@ Acqua: ${todayData.waterGlasses}/8 bicchieri | Passi: ${todayData.steps}`
           Powered by DeepSeek AI • I consigli non sostituiscono il parere medico
         </p>
       </div>
+      
+      {/* Conversations List Dialog */}
+      <ConversationsList
+        isOpen={showConversationsList}
+        onClose={() => setShowConversationsList(false)}
+        onSelectConversation={(id) => {
+          setCurrentConversation(id)
+          // Carica messaggi dalla conversazione selezionata
+          const conv = conversations.find(c => c.id === id)
+          if (conv) {
+            setMessages(conv.messages.map(m => ({
+              id: m.id || Date.now().toString(),
+              role: m.role as 'user' | 'assistant',
+              content: m.content,
+              timestamp: new Date(m.timestamp || Date.now())
+            })))
+          }
+        }}
+        onNewConversation={handleClearChat}
+      />
     </div>
   )
 }
