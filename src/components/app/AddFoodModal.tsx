@@ -54,7 +54,23 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
   const [quantity, setQuantity] = useState(100)
   const [isAdding, setIsAdding] = useState(false)
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
+  const [usePortions, setUsePortions] = useState(false)
+  const [selectedPortion, setSelectedPortion] = useState<string>('grams')
   const searchInputRef = useRef<HTMLInputElement>(null)
+  
+  // Porzioni predefinite (come app Android)
+  const PORTION_TYPES = [
+    { id: 'grams', label: 'Grammi', grams: 1 },
+    { id: 'spoon', label: 'Cucchiaio', grams: 15 },
+    { id: 'teaspoon', label: 'Cucchiaino', grams: 5 },
+    { id: 'cup', label: 'Tazza', grams: 240 },
+    { id: 'small_cup', label: 'Tazzina', grams: 80 },
+    { id: 'glass', label: 'Bicchiere', grams: 200 },
+    { id: 'shot_glass', label: 'Bicchierino', grams: 60 },
+    { id: 'ladle', label: 'Mestolo', grams: 100 },
+    { id: 'slice', label: 'Fetta', grams: 30 },
+    { id: 'piece', label: 'Pezzo', grams: 50 },
+  ]
   
   // Store
   const { addMeal, getDailyData } = useAppStore()
@@ -65,18 +81,27 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
     return searchFoods(searchQuery, 15)
   }, [searchQuery])
   
+  // Calcola grammi effettivi in base alla porzione
+  const effectiveGrams = useMemo(() => {
+    if (!usePortions) return quantity
+    const portion = PORTION_TYPES.find(p => p.id === selectedPortion)
+    return quantity * (portion?.grams || 1)
+  }, [quantity, usePortions, selectedPortion])
+  
   // Calcola valori nutrizionali per la quantità selezionata
   const nutritionalValues = useMemo(() => {
     if (!selectedFood) return null
-    const multiplier = quantity / 100
+    const grams = effectiveGrams
+    const multiplier = grams / 100
     return {
       calories: Math.round(selectedFood.calories * multiplier),
       protein: Math.round(selectedFood.protein * multiplier * 10) / 10,
       carbs: Math.round(selectedFood.carbs * multiplier * 10) / 10,
       fat: Math.round(selectedFood.fat * multiplier * 10) / 10,
       fiber: Math.round(selectedFood.fiber * multiplier * 10) / 10,
+      grams: grams
     }
-  }, [selectedFood, quantity])
+  }, [selectedFood, effectiveGrams])
   
   // Focus su input quando si apre
   useEffect(() => {
@@ -95,8 +120,20 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
   }, [isOpen])
   
   // Gestione quantità
-  const incrementQuantity = () => setQuantity(q => Math.min(q + 10, 1000))
-  const decrementQuantity = () => setQuantity(q => Math.max(q - 10, 10))
+  const incrementQuantity = () => {
+    if (usePortions) {
+      setQuantity(q => Math.min(q + 1, 20)) // Max 20 porzioni
+    } else {
+      setQuantity(q => Math.min(q + 10, 1000))
+    }
+  }
+  const decrementQuantity = () => {
+    if (usePortions) {
+      setQuantity(q => Math.max(q - 1, 1)) // Min 1 porzione
+    } else {
+      setQuantity(q => Math.max(q - 10, 10))
+    }
+  }
   
   // Aggiungi alimento al pasto
   const handleAddFood = useCallback(async () => {
@@ -113,7 +150,7 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
       carbs: selectedFood.carbs,
       fat: selectedFood.fat,
       fiber: selectedFood.fiber,
-      quantity: quantity,
+      quantity: nutritionalValues.grams, // Usa grammi effettivi
       source: 'local'
     }
     
@@ -301,11 +338,47 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
                     
                     {/* Quantity Selector */}
                     <div className="p-4 bg-gray-50 rounded-xl">
-                      <p className="text-sm text-gray-500 mb-3 text-center">Quantità (grammi)</p>
+                      {/* Toggle Porzioni/Grammi */}
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        <button
+                          onClick={() => { setUsePortions(false); setQuantity(100) }}
+                          className={cn(
+                            "px-3 py-1.5 text-sm rounded-lg transition-colors",
+                            !usePortions ? "bg-primary text-white" : "bg-white text-gray-600"
+                          )}
+                        >
+                          Grammi
+                        </button>
+                        <button
+                          onClick={() => { setUsePortions(true); setQuantity(1); setSelectedPortion('spoon') }}
+                          className={cn(
+                            "px-3 py-1.5 text-sm rounded-lg transition-colors",
+                            usePortions ? "bg-primary text-white" : "bg-white text-gray-600"
+                          )}
+                        >
+                          Porzioni
+                        </button>
+                      </div>
+                      
+                      {/* Porzione selector */}
+                      {usePortions && (
+                        <select
+                          value={selectedPortion}
+                          onChange={(e) => setSelectedPortion(e.target.value)}
+                          className="w-full mb-3 p-2 bg-white border border-gray-200 rounded-lg text-sm"
+                        >
+                          {PORTION_TYPES.filter(p => p.id !== 'grams').map(p => (
+                            <option key={p.id} value={p.id}>
+                              {p.label} ({p.grams}g)
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      
                       <div className="flex items-center justify-center gap-4">
                         <button
                           onClick={decrementQuantity}
-                          disabled={quantity <= 10}
+                          disabled={usePortions ? quantity <= 1 : quantity <= 10}
                           className="p-3 bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
                         >
                           <Minus className="w-5 h-5 text-gray-600" />
@@ -316,17 +389,21 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
                             value={quantity}
                             onChange={(e) => {
                               const val = parseInt(e.target.value)
-                              if (!isNaN(val) && val > 0 && val <= 1000) {
-                                setQuantity(val)
+                              if (usePortions) {
+                                if (!isNaN(val) && val > 0 && val <= 20) setQuantity(val)
+                              } else {
+                                if (!isNaN(val) && val > 0 && val <= 1000) setQuantity(val)
                               }
                             }}
                             className="w-full text-center text-2xl font-bold text-gray-900 bg-transparent focus:outline-none"
                           />
-                          <p className="text-sm text-gray-400">grammi</p>
+                          <p className="text-sm text-gray-400">
+                            {usePortions ? `= ${effectiveGrams}g` : 'grammi'}
+                          </p>
                         </div>
                         <button
                           onClick={incrementQuantity}
-                          disabled={quantity >= 1000}
+                          disabled={usePortions ? quantity >= 20 : quantity >= 1000}
                           className="p-3 bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
                         >
                           <Plus className="w-5 h-5 text-gray-600" />
@@ -334,6 +411,7 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
                       </div>
                       
                       {/* Quick quantity buttons */}
+                      {!usePortions && (
                       <div className="flex justify-center gap-2 mt-3">
                         {[50, 100, 150, 200].map(q => (
                           <button
@@ -350,13 +428,14 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
                           </button>
                         ))}
                       </div>
+                      )}
                     </div>
                     
                     {/* Nutritional Values */}
                     {nutritionalValues && (
                       <div className="p-4 bg-gray-50 rounded-xl">
                         <p className="text-sm text-gray-500 mb-3 text-center">
-                          Valori per {quantity}g
+                          Valori per {nutritionalValues.grams}g
                         </p>
                         
                         {/* Calories highlight */}
