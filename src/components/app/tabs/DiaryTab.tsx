@@ -146,6 +146,21 @@ export function DiaryTab() {
     carbs: Math.round((targetCalories * 0.50) / 4),   // 50% carboidrati  
     fat: Math.round((targetCalories * 0.25) / 9)      // 25% grassi
   }), [targetCalories])
+  
+  // Controlla eccessi macro (>120% del target)
+  const macroExcesses = useMemo(() => {
+    const excesses: { macro: string; percentage: number; label: string }[] = []
+    
+    const proteinPct = (totalMacros.protein / macroTargets.protein) * 100
+    const carbsPct = (totalMacros.carbs / macroTargets.carbs) * 100
+    const fatPct = (totalMacros.fat / macroTargets.fat) * 100
+    
+    if (proteinPct > 120) excesses.push({ macro: 'protein', percentage: Math.round(proteinPct), label: 'Proteine' })
+    if (carbsPct > 120) excesses.push({ macro: 'carbs', percentage: Math.round(carbsPct), label: 'Carboidrati' })
+    if (fatPct > 120) excesses.push({ macro: 'fat', percentage: Math.round(fatPct), label: 'Grassi' })
+    
+    return excesses
+  }, [totalMacros, macroTargets])
 
   const goToPreviousDay = () => setSelectedDate(prev => subDays(prev, 1))
   const goToNextDay = () => setSelectedDate(prev => addDays(prev, 1))
@@ -289,6 +304,31 @@ export function DiaryTab() {
           carbs: { current: totalMacros.carbs, target: macroTargets.carbs },
           fat: { current: totalMacros.fat, target: macroTargets.fat }
         }} />
+        
+        {/* Avviso eccesso macro */}
+        {macroExcesses.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl"
+          >
+            <div className="flex items-start gap-2">
+              <span className="text-lg">⚠️</span>
+              <div>
+                <p className="text-sm font-medium text-red-700">
+                  Attenzione: stai esagerando con
+                </p>
+                <ul className="text-xs text-red-600 mt-1">
+                  {macroExcesses.map(exc => (
+                    <li key={exc.macro}>
+                      <strong>{exc.label}</strong>: {exc.percentage}% del target
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* 6 Meal Cards - Grid Layout */}
