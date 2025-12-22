@@ -29,6 +29,7 @@ interface OpenFoodFactsProduct {
   }
   image_url?: string
   code?: string
+  countries_tags?: string[] // Paesi di vendita del prodotto
 }
 
 interface BarcodeScannerProps {
@@ -260,9 +261,15 @@ export function BarcodeScanner({ isOpen, onClose, onProductFound }: BarcodeScann
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl"
               >
-                <h3 className="font-semibold text-gray-900 mb-2">
-                  {product.product_name || 'Prodotto trovato'}
-                </h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-900">
+                    {product.product_name || 'Prodotto trovato'}
+                  </h3>
+                  {/* Badge provenienza OpenFoodFacts */}
+                  <span className="px-2 py-1 text-[10px] font-medium rounded bg-orange-100 text-orange-700">
+                    🌍 OpenFoodFacts {product.countries_tags?.[0]?.replace('en:', '').toUpperCase() || ''}
+                  </span>
+                </div>
                 {product.brands && (
                   <p className="text-sm text-gray-500 mb-3">{product.brands}</p>
                 )}

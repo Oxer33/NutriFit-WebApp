@@ -289,10 +289,16 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
                               onClick={() => handleSelectFood(food)}
                               className="w-full p-3 bg-gray-50 hover:bg-primary/5 rounded-xl text-left transition-colors flex items-center justify-between group"
                             >
-                              <div>
-                                <p className="font-medium text-gray-900 group-hover:text-primary">
-                                  {food.name}
-                                </p>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-gray-900 group-hover:text-primary">
+                                    {food.name}
+                                  </p>
+                                  {/* Badge provenienza */}
+                                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-green-100 text-green-700">
+                                    🇮🇹 CREA
+                                  </span>
+                                </div>
                                 <p className="text-sm text-gray-500">
                                   {food.calories} kcal • P: {food.protein}g • C: {food.carbs}g • G: {food.fat}g
                                 </p>

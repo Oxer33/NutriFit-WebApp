@@ -17,7 +17,13 @@ export interface FoodFromDB {
   carbs: number // g
   fiber: number // g
   sugar: number // g
+  source?: 'CREA' | 'OpenFoodFacts' | 'custom' // Provenienza dati
+  country?: string // Paese di origine (per OpenFoodFacts)
 }
+
+// Indica che gli alimenti del database locale provengono da CREA (ex INRAN)
+export const LOCAL_DATABASE_SOURCE = 'CREA' as const
+export const LOCAL_DATABASE_COUNTRY = 'Italia' as const
 
 /**
  * Database alimenti - Array di tutti gli alimenti disponibili
