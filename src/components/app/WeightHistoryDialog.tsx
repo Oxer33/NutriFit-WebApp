@@ -10,7 +10,7 @@
  * Replica la funzionalità WeightHistoryDialog dell'app Android.
  */
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   X, 
@@ -23,11 +23,15 @@ import {
   Camera,
   Calendar,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Cloud,
+  CloudOff,
+  Loader2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
-import { format, parseISO, subDays } from 'date-fns'
+import { useSession } from 'next-auth/react'
+import { format, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
 
 // =========== TYPES ===========
@@ -51,23 +55,68 @@ interface WeightHistoryDialogProps {
 // =========== COMPONENT ===========
 
 export function WeightHistoryDialog({ isOpen, onClose }: WeightHistoryDialogProps) {
-  // Store
+  // Store e Auth
   const { profile } = useAppStore()
+  const { data: session } = useSession()
+  const userId = session?.user?.id
   
   // State
-  const [weightRecords, setWeightRecords] = useState<WeightRecord[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('nutrifit_weight_history')
-      return saved ? JSON.parse(saved) : []
-    }
-    return []
-  })
+  const [weightRecords, setWeightRecords] = useState<WeightRecord[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
   const [newWeight, setNewWeight] = useState('')
   const [newNote, setNewNote] = useState('')
   const [expandedRecord, setExpandedRecord] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSynced, setIsSynced] = useState(false)
+  
+  // Carica storico peso da API o localStorage
+  useEffect(() => {
+    const loadWeightHistory = async () => {
+      // Se utente autenticato, carica da API
+      if (userId) {
+        setIsLoading(true)
+        try {
+          const response = await fetch(`/api/users/${userId}/weight?limit=100`)
+          const data = await response.json()
+          if (data.success && data.data?.entries) {
+            // Converti formato API a formato locale
+            const records: WeightRecord[] = data.data.entries.map((e: any) => ({
+              id: `weight-${e.date}`,
+              date: e.date,
+              weight: e.weight_kg,
+              note: e.notes,
+              createdAt: e.created_at
+            }))
+            setWeightRecords(records)
+            setIsSynced(true)
+          }
+        } catch (error) {
+          console.error('Errore caricamento storico peso:', error)
+          // Fallback a localStorage
+          loadFromLocalStorage()
+        } finally {
+          setIsLoading(false)
+        }
+      } else {
+        // Utente non autenticato: usa localStorage
+        loadFromLocalStorage()
+      }
+    }
+    
+    const loadFromLocalStorage = () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('nutrifit_weight_history')
+        if (saved) setWeightRecords(JSON.parse(saved))
+      }
+      setIsSynced(false)
+    }
+    
+    if (isOpen) {
+      loadWeightHistory()
+    }
+  }, [isOpen, userId])
   
   // Statistiche
   const stats = useMemo(() => {
@@ -99,30 +148,65 @@ export function WeightHistoryDialog({ isOpen, onClose }: WeightHistoryDialogProp
     return { current, initial, change, trend }
   }, [weightRecords, profile.weightKg])
   
-  // Salva records in localStorage
-  const saveRecords = (records: WeightRecord[]) => {
-    setWeightRecords(records)
+  // Salva records in localStorage (fallback)
+  const saveToLocalStorage = (records: WeightRecord[]) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('nutrifit_weight_history', JSON.stringify(records))
     }
   }
   
-  // Aggiungi nuovo record
-  const handleAddRecord = () => {
+  // Aggiungi nuovo record (API o localStorage)
+  const handleAddRecord = async () => {
     const weight = parseFloat(newWeight)
     if (isNaN(weight) || weight <= 0) return
     
-    const newRecord: WeightRecord = {
-      id: `weight-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      weight,
-      note: newNote.trim() || undefined,
-      photoBase64: selectedPhoto || undefined,
-      createdAt: new Date().toISOString()
-    }
+    const dateStr = new Date().toISOString().split('T')[0]
     
-    const updated = [newRecord, ...weightRecords]
-    saveRecords(updated)
+    // Se autenticato, salva su API
+    if (userId) {
+      setIsLoading(true)
+      try {
+        const response = await fetch(`/api/users/${userId}/weight`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            weight_kg: weight,
+            notes: newNote.trim() || undefined
+          })
+        })
+        
+        if (response.ok) {
+          // Aggiungi al state locale
+          const newRecord: WeightRecord = {
+            id: `weight-${dateStr}`,
+            date: dateStr,
+            weight,
+            note: newNote.trim() || undefined,
+            photoBase64: selectedPhoto || undefined,
+            createdAt: new Date().toISOString()
+          }
+          setWeightRecords(prev => [newRecord, ...prev.filter(r => r.date !== dateStr)])
+          setIsSynced(true)
+        }
+      } catch (error) {
+        console.error('Errore salvataggio peso:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    } else {
+      // Fallback localStorage
+      const newRecord: WeightRecord = {
+        id: `weight-${Date.now()}`,
+        date: dateStr,
+        weight,
+        note: newNote.trim() || undefined,
+        photoBase64: selectedPhoto || undefined,
+        createdAt: new Date().toISOString()
+      }
+      const updated = [newRecord, ...weightRecords]
+      setWeightRecords(updated)
+      saveToLocalStorage(updated)
+    }
     
     // Reset form
     setNewWeight('')
@@ -131,10 +215,28 @@ export function WeightHistoryDialog({ isOpen, onClose }: WeightHistoryDialogProp
     setShowAddForm(false)
   }
   
-  // Elimina record
-  const handleDeleteRecord = (id: string) => {
+  // Elimina record (API o localStorage)
+  const handleDeleteRecord = async (id: string) => {
+    const record = weightRecords.find(r => r.id === id)
+    if (!record) return
+    
+    // Se autenticato, elimina da API
+    if (userId) {
+      try {
+        await fetch(`/api/users/${userId}/weight?date=${record.date}`, {
+          method: 'DELETE'
+        })
+      } catch (error) {
+        console.error('Errore eliminazione peso:', error)
+      }
+    }
+    
+    // Rimuovi da state locale
     const updated = weightRecords.filter(r => r.id !== id)
-    saveRecords(updated)
+    setWeightRecords(updated)
+    if (!userId) {
+      saveToLocalStorage(updated)
+    }
   }
   
   // Gestione foto
