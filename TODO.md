@@ -79,6 +79,17 @@
 - [x] **Offline Page** - Pagina offline per quando non c'è connessione
 - [x] **Debounce Ricerca** - 300ms delay per evitare troppe query
 
+### 🆕 Nuove Features v5.0 (Sistema Autenticazione)
+- [x] **NextAuth.js v5** - Autenticazione con email/password
+- [x] **Registrazione Utenti** - Form con validazione password forte
+- [x] **Verifica Email** - Link di verifica via email (token 24h)
+- [x] **Login/Logout** - Sessioni JWT sicure (30 giorni)
+- [x] **Email Service** - Template email professionali (Nodemailer)
+- [x] **Middleware Protezione** - Route /app protette (redirect login)
+- [x] **Storico Peso** - API /api/users/{id}/weight con statistiche
+- [x] **Password Hash** - bcrypt con 12 salt rounds
+- [x] **Session Provider** - Gestione sessione lato client
+
 ### 📦 Database Locali
 - [x] Database alimenti (1400+ items) da CSV originale
 - [x] Database attività fisiche (100+ items) con valori MET
