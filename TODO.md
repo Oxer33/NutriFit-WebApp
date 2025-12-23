@@ -69,6 +69,16 @@
 - [x] **Indicatore eccesso macro** - Avviso quando si supera 120% di proteine/carb/grassi
 - [x] **Provenienza alimenti** - Badge CREA 🇮🇹 per database locale, OpenFoodFacts 🌍 per scansioni
 
+### 🆕 Nuove Features v4.0 (AWS DynamoDB + PWA)
+- [x] **AWS DynamoDB Integration** - Database cloud per alimenti e consumi
+- [x] **Retry con Exponential Backoff** - Gestione throttling (5 RCU/WCU)
+- [x] **Rate Limiting Client-side** - Max 4 req/sec per sicurezza
+- [x] **API Endpoints** - /api/foods, /api/users/{id}/meals CRUD completo
+- [x] **PWA Support** - Manifest, Service Worker, installazione app
+- [x] **Install Prompt** - Prompt installazione per Android/iOS/Desktop
+- [x] **Offline Page** - Pagina offline per quando non c'è connessione
+- [x] **Debounce Ricerca** - 300ms delay per evitare troppe query
+
 ### 📦 Database Locali
 - [x] Database alimenti (1400+ items) da CSV originale
 - [x] Database attività fisiche (100+ items) con valori MET

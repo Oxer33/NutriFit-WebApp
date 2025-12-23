@@ -20,6 +20,27 @@
 | Zustand | 5.x | State management |
 | Lucide React | Latest | Icone |
 | date-fns | Latest | Manipolazione date |
+| AWS SDK v3 | Latest | DynamoDB client |
+
+### Architettura Cloud (AWS)
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Next.js   │────▶│  API Routes │────▶│  DynamoDB   │
+│   Frontend  │◀────│  (Backend)  │◀────│  FoodDiary  │
+└─────────────┘     └─────────────┘     └─────────────┘
+     │                                        │
+     │              ┌─────────────┐           │
+     └─────────────▶│  Service    │───────────┘
+                    │  Worker     │
+                    └─────────────┘
+```
+
+**DynamoDB Table: FoodDiary**
+- **Partition Key**: PK (String) - `FOOD#{id}` o `USER#{id}`
+- **Sort Key**: SK (String) - `METADATA` o `{date}#{meal_type}#{id}`
+- **Capacità**: 5 RCU, 5 WCU (provisioned)
+- **Regione**: eu-north-1
 
 ---
 

@@ -50,6 +50,7 @@ interface AddFoodModalProps {
 
 export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('') // Query con debounce
   const [selectedFood, setSelectedFood] = useState<FoodFromDB | null>(null)
   const [quantity, setQuantity] = useState(100)
   const [isAdding, setIsAdding] = useState(false)
@@ -57,6 +58,16 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
   const [usePortions, setUsePortions] = useState(false)
   const [selectedPortion, setSelectedPortion] = useState<string>('grams')
   const searchInputRef = useRef<HTMLInputElement>(null)
+  
+  // Debounce della query di ricerca (300ms)
+  // Evita troppe richieste al database durante la digitazione
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery)
+    }, 300)
+    
+    return () => clearTimeout(timer)
+  }, [searchQuery])
   
   // Porzioni predefinite (come app Android)
   const PORTION_TYPES = [
@@ -75,11 +86,11 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
   // Store
   const { addMeal, getDailyData } = useAppStore()
   
-  // Cerca alimenti
+  // Cerca alimenti (usa query con debounce per evitare troppe richieste)
   const searchResults = useMemo(() => {
-    if (searchQuery.length < 2) return []
-    return searchFoods(searchQuery, 15)
-  }, [searchQuery])
+    if (debouncedQuery.length < 2) return []
+    return searchFoods(debouncedQuery, 15)
+  }, [debouncedQuery])
   
   // Calcola grammi effettivi in base alla porzione
   const effectiveGrams = useMemo(() => {

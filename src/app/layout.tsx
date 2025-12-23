@@ -16,6 +16,8 @@ import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers/Providers'
 import { SplashScreen } from '@/components/ui/SplashScreen'
+import { PWAInstallPrompt } from '@/components/app/PWAInstallPrompt'
+import { ServiceWorkerRegistration } from '@/components/app/ServiceWorkerRegistration'
 
 // =========== FONT CONFIGURATION ===========
 const inter = Inter({
@@ -105,6 +107,9 @@ export default function RootLayout({
     <html lang="it" className={`${inter.variable} ${jakartaSans.variable}`}>
       <body className="min-h-screen bg-cream antialiased">
         <Providers>
+          {/* Registrazione Service Worker per PWA */}
+          <ServiceWorkerRegistration />
+          
           {/* Splashscreen animato di 4 secondi */}
           <SplashScreen />
           
@@ -112,6 +117,9 @@ export default function RootLayout({
           <main className="relative">
             {children}
           </main>
+          
+          {/* Prompt installazione PWA */}
+          <PWAInstallPrompt />
         </Providers>
       </body>
     </html>
