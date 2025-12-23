@@ -37,10 +37,31 @@
 ```
 
 **DynamoDB Table: FoodDiary**
-- **Partition Key**: PK (String) - `FOOD#{id}` o `USER#{id}`
-- **Sort Key**: SK (String) - `METADATA` o `{date}#{meal_type}#{id}`
+- **Partition Key**: PK (String) - `FOOD#{id}`, `USER#{id}`, `EMAIL#{email}`, `TOKEN#{token}`
+- **Sort Key**: SK (String) - `METADATA`, `PROFILE`, `LOOKUP`, `VERIFICATION`, `{date}#{meal_type}#{id}`, `WEIGHT#{date}`
 - **Capacità**: 5 RCU, 5 WCU (provisioned)
 - **Regione**: eu-north-1
+
+### Sistema Autenticazione (NextAuth.js v5)
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Client    │────▶│  NextAuth   │────▶│  DynamoDB   │
+│   Login     │◀────│  Middleware │◀────│  Users      │
+└─────────────┘     └─────────────┘     └─────────────┘
+     │                     │
+     │                     ▼
+     │              ┌─────────────┐
+     │              │   Email     │
+     └─────────────▶│   Service   │
+                    └─────────────┘
+```
+
+**Flusso Autenticazione:**
+1. Utente si registra → Email verifica inviata
+2. Click link verifica → Account attivato
+3. Login → JWT session (30 giorni)
+4. Middleware protegge route /app
 
 ---
 
@@ -49,47 +70,48 @@
 ```
 nutrifit-webapp/
 ├── src/
-│   ├── app/                    # App Router (Next.js 14+)
+│   ├── app/                    # App Router (Next.js 16+)
 │   │   ├── layout.tsx          # Layout principale con font e metadata
 │   │   ├── page.tsx            # Homepage
 │   │   ├── globals.css         # Stili globali e Design System CSS
-│   │   ├── app/                # Pagina App (Diario Alimentare)
+│   │   ├── manifest.ts         # PWA Manifest
+│   │   ├── app/                # Pagina App (Diario Alimentare) - PROTETTA
 │   │   │   └── page.tsx
-│   │   ├── chi-sono/           # Pagina Chi Sono
+│   │   ├── auth/               # Pagine Autenticazione
+│   │   │   ├── login/page.tsx  # Login
+│   │   │   ├── register/page.tsx # Registrazione
+│   │   │   └── verify/page.tsx # Verifica Email
+│   │   ├── onboarding/         # Onboarding nuovo utente
 │   │   │   └── page.tsx
-│   │   ├── servizi/            # Pagina Servizi
-│   │   │   └── page.tsx
-│   │   ├── blog/               # Pagina Blog
-│   │   │   └── page.tsx
-│   │   └── contatti/           # Pagina Contatti
-│   │       └── page.tsx
+│   │   └── api/                # API Routes
+│   │       ├── auth/           # Auth endpoints
+│   │       │   ├── [...nextauth]/route.ts
+│   │       │   ├── register/route.ts
+│   │       │   └── verify/route.ts
+│   │       ├── foods/route.ts  # CRUD alimenti
+│   │       └── users/[userId]/ # User endpoints
+│   │           ├── meals/route.ts
+│   │           └── weight/route.ts
 │   │
 │   ├── components/             # Componenti React
 │   │   ├── ui/                 # Componenti UI riutilizzabili
 │   │   │   ├── Navbar.tsx      # Navbar con glassmorphism
-│   │   │   ├── Footer.tsx      # Footer con links
 │   │   │   └── SplashScreen.tsx # Splash animato
 │   │   │
-│   │   ├── home/               # Componenti Homepage
-│   │   │   ├── HeroSection.tsx
-│   │   │   ├── AboutPreview.tsx
-│   │   │   ├── StatsCounter.tsx
-│   │   │   ├── ServicesGrid.tsx
-│   │   │   ├── TestimonialsSection.tsx
-│   │   │   ├── CTASection.tsx
-│   │   │   └── FeaturesSection.tsx
+│   │   ├── providers/          # Context Providers
+│   │   │   ├── Providers.tsx   # Wrapper principale
+│   │   │   └── AuthProvider.tsx # Session Provider
 │   │   │
 │   │   ├── app/                # Componenti App Dashboard
 │   │   │   ├── AppDashboard.tsx    # Dashboard principale con tabs
 │   │   │   ├── AddFoodModal.tsx    # Modal ricerca e aggiunta alimenti
 │   │   │   ├── AddActivityModal.tsx # Modal aggiunta attività fisica
+│   │   │   ├── BarcodeScanner.tsx  # Scanner barcode OpenFoodFacts
 │   │   │   ├── StepCounter.tsx     # Contapassi web-based
 │   │   │   ├── WaterReminder.tsx   # Promemoria idratazione
-│   │   │   ├── CopyMealsDialog.tsx # Dialog copia pasti da altro giorno
-│   │   │   ├── SaveMealsDialog.tsx # Dialog salva pasti come template
-│   │   │   ├── WeightHistoryDialog.tsx # Storico peso con foto
-│   │   │   ├── CustomFoodsManager.tsx  # Gestione alimenti personalizzati
-│   │   │   ├── MenstrualCycleDialog.tsx # Tracking ciclo mestruale
+│   │   │   ├── WeightHistoryDialog.tsx # Storico peso (sync cloud)
+│   │   │   ├── PWAInstallPrompt.tsx # Prompt installazione PWA
+│   │   │   ├── ServiceWorkerRegistration.tsx # Registra SW
 │   │   │   ├── CalorieGauge.tsx    # Tachimetro calorie (gauge visivo)
 │   │   │   ├── MacroGauge.tsx      # Gauge macronutrienti circolari
 │   │   │   └── tabs/
@@ -97,30 +119,18 @@ nutrifit-webapp/
 │   │   │       ├── AITab.tsx       # Chat AI nutrizionista
 │   │   │       ├── ProfileTab.tsx  # Profilo con BMI/BMR/TDEE + tools
 │   │   │       └── StatsTab.tsx    # Grafici e statistiche
-│   │   │
-│   │   ├── about/              # Componenti Chi Sono
-│   │   │   ├── AboutHero.tsx
-│   │   │   ├── AboutStory.tsx
-│   │   │   └── AboutCredentials.tsx
-│   │   │
-│   │   ├── services/           # Componenti Servizi
-│   │   │   ├── ServicesHero.tsx
-│   │   │   └── ServicesList.tsx
-│   │   │
-│   │   ├── blog/               # Componenti Blog
-│   │   │   ├── BlogHero.tsx
-│   │   │   └── BlogGrid.tsx
-│   │   │
-│   │   ├── contact/            # Componenti Contatti
-│   │   │   ├── ContactHero.tsx
-│   │   │   └── ContactForm.tsx
-│   │   │
-│   │   └── providers/          # Context Providers
-│   │       └── Providers.tsx
 │   │
 │   ├── lib/                    # Utilities e helpers
 │   │   ├── utils.ts            # Funzioni utility (cn, BMI, calorie)
-│   │   └── openrouter.ts       # API OpenRouter per AI
+│   │   ├── openrouter.ts       # API OpenRouter per AI
+│   │   ├── auth.ts             # Configurazione NextAuth.js v5
+│   │   ├── dynamodb.ts         # Client DynamoDB con retry/rate limit
+│   │   ├── userService.ts      # Gestione utenti (CRUD, auth, peso)
+│   │   ├── foodService.ts      # Gestione alimenti (CRUD, ricerca)
+│   │   ├── mealService.ts      # Gestione pasti (diario, stats)
+│   │   └── emailService.ts     # Invio email transazionali
+│   │
+│   ├── middleware.ts           # Protezione route autenticate
 │   │
 │   └── store/                  # State Management
 │       └── useAppStore.ts      # Zustand store principale
