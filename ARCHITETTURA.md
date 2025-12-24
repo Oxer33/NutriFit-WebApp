@@ -68,6 +68,31 @@
 - Email mittente deve essere verificata in SES
 - In sandbox mode: anche destinatari devono essere verificati
 
+### Sicurezza API
+
+Tutte le API utente verificano l'autorizzazione:
+
+```typescript
+// Ogni API verifica che l'utente autenticato possa accedere solo ai propri dati
+async function checkAuthorization(userId: string) {
+  const session = await auth()
+  if (!session?.user?.id) return { authorized: false, status: 401 }
+  if (session.user.id !== userId) return { authorized: false, status: 403 }
+  return { authorized: true }
+}
+```
+
+**API protette:**
+- `GET/POST/DELETE /api/users/{userId}/weight` - Storico peso
+- `GET/POST /api/users/{userId}/meals` - Diario pasti
+- `PUT/DELETE /api/users/{userId}/meals/{mealId}` - Singolo pasto
+
+**Validazioni input:**
+- Peso: 20-300 kg
+- Altezza: 100-250 cm
+- Età: 10-120 anni
+- Quantità alimenti: > 0g
+
 ---
 
 ## 📁 Struttura Directory
