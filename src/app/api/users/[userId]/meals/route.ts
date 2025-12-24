@@ -7,9 +7,12 @@
  * - GET /api/users/{userId}/meals?date={date} - Diario giornaliero
  * - GET /api/users/{userId}/meals?from={date}&to={date} - Range di date
  * - POST /api/users/{userId}/meals - Registra pasto
+ * 
+ * SICUREZZA: Verifica che l'utente acceda solo ai propri dati
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { 
   addMeal, 
   getDailyDiary, 
@@ -18,6 +21,22 @@ import {
   MEAL_TYPES,
   type MealTypeDB
 } from '@/lib/mealService'
+
+// =========== HELPER: Verifica autorizzazione ===========
+
+async function checkAuthorization(userId: string) {
+  const session = await auth()
+  
+  if (!session?.user?.id) {
+    return { authorized: false, error: 'Non autenticato', status: 401 }
+  }
+  
+  if (session.user.id !== userId) {
+    return { authorized: false, error: 'Accesso non autorizzato', status: 403 }
+  }
+  
+  return { authorized: true, session }
+}
 
 // =========== GET - DIARIO PASTI ===========
 
@@ -39,6 +58,15 @@ export async function GET(
         success: false, 
         error: 'userId richiesto' 
       }, { status: 400 })
+    }
+    
+    // SICUREZZA: Verifica autorizzazione
+    const authCheck = await checkAuthorization(userId)
+    if (!authCheck.authorized) {
+      return NextResponse.json({
+        success: false,
+        error: authCheck.error
+      }, { status: authCheck.status })
     }
 
     // Range di date con statistiche
@@ -119,6 +147,15 @@ export async function POST(
         success: false, 
         error: 'userId richiesto' 
       }, { status: 400 })
+    }
+    
+    // SICUREZZA: Verifica autorizzazione
+    const authCheck = await checkAuthorization(userId)
+    if (!authCheck.authorized) {
+      return NextResponse.json({
+        success: false,
+        error: authCheck.error
+      }, { status: authCheck.status })
     }
 
     // Validazione campi obbligatori

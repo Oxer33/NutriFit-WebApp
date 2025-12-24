@@ -8,15 +8,36 @@
  * - GET /api/users/{userId}/weight?stats=true - Statistiche peso
  * - POST /api/users/{userId}/weight - Aggiungi nuovo peso
  * - DELETE /api/users/{userId}/weight?date={date} - Elimina peso
+ * 
+ * SICUREZZA: Tutte le API verificano che l'utente autenticato
+ * possa accedere solo ai propri dati (userId == session.user.id)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { 
   addWeightEntry, 
   getWeightHistory, 
   getWeightStats,
   deleteWeightEntry 
 } from '@/lib/userService'
+
+// =========== HELPER: Verifica autorizzazione ===========
+
+async function checkAuthorization(userId: string) {
+  const session = await auth()
+  
+  if (!session?.user?.id) {
+    return { authorized: false, error: 'Non autenticato', status: 401 }
+  }
+  
+  // L'utente può accedere solo ai propri dati
+  if (session.user.id !== userId) {
+    return { authorized: false, error: 'Accesso non autorizzato', status: 403 }
+  }
+  
+  return { authorized: true, session }
+}
 
 // =========== GET - STORICO PESO ===========
 
@@ -36,6 +57,15 @@ export async function GET(
         success: false,
         error: 'userId richiesto'
       }, { status: 400 })
+    }
+    
+    // SICUREZZA: Verifica autorizzazione
+    const authCheck = await checkAuthorization(userId)
+    if (!authCheck.authorized) {
+      return NextResponse.json({
+        success: false,
+        error: authCheck.error
+      }, { status: authCheck.status })
     }
 
     // Ritorna statistiche
@@ -90,6 +120,15 @@ export async function POST(
         success: false,
         error: 'userId richiesto'
       }, { status: 400 })
+    }
+    
+    // SICUREZZA: Verifica autorizzazione
+    const authCheck = await checkAuthorization(userId)
+    if (!authCheck.authorized) {
+      return NextResponse.json({
+        success: false,
+        error: authCheck.error
+      }, { status: authCheck.status })
     }
 
     // Validazione peso
@@ -163,6 +202,15 @@ export async function DELETE(
         success: false,
         error: 'userId richiesto'
       }, { status: 400 })
+    }
+    
+    // SICUREZZA: Verifica autorizzazione
+    const authCheck = await checkAuthorization(userId)
+    if (!authCheck.authorized) {
+      return NextResponse.json({
+        success: false,
+        error: authCheck.error
+      }, { status: authCheck.status })
     }
 
     if (!date) {

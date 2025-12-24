@@ -30,13 +30,10 @@ import {
 import { cn } from '@/lib/utils'
 
 // =========== NAVIGATION ITEMS ===========
+// NOTA: Rimosse pagine inesistenti (chi-sono, servizi, blog, contatti)
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/chi-sono', label: 'Chi Sono', icon: User },
-  { href: '/servizi', label: 'Servizi', icon: Utensils },
   { href: '/app', label: 'App', icon: LayoutDashboard },
-  { href: '/blog', label: 'Blog', icon: BookOpen },
-  { href: '/contatti', label: 'Contatti', icon: Mail },
 ]
 
 export function Navbar() {
