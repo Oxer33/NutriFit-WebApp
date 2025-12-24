@@ -11,8 +11,8 @@
 // USER PROFILE TYPES
 // ============================================
 
-/** Genere utente */
-export type Gender = 'M' | 'F' | 'O'
+/** Genere utente - solo M/F per calcoli metabolici scientificamente corretti */
+export type Gender = 'M' | 'F'
 
 /** Obiettivo nutrizionale */
 export type Goal = 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_WEIGHT'

@@ -21,7 +21,7 @@ interface StepWelcomeProps {
     age: number | null
     heightCm: number | null
     weightKg: number | null
-    gender: 'M' | 'F' | 'O' | null
+    gender: 'M' | 'F' | null
     goal: 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_WEIGHT' | null
     activityLevel: 'SEDENTARY' | 'ACTIVE' | null
     dietStyle: 'OMNIVORE' | 'VEGETARIAN' | 'VEGAN' | null

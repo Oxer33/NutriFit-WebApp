@@ -51,10 +51,10 @@ interface ProfileEditDialogProps {
 
 // =========== OPTIONS ===========
 
+// Solo Maschio/Femmina - scientificamente corretto per calcoli metabolici
 const genderOptions: { value: Gender; label: string; icon: string }[] = [
   { value: 'M', label: 'Uomo', icon: '👨' },
   { value: 'F', label: 'Donna', icon: '👩' },
-  { value: 'O', label: 'Altro', icon: '🧑' },
 ]
 
 const goalOptions: { value: Goal; label: string; icon: React.ReactNode; description: string }[] = [

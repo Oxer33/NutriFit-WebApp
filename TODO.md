@@ -98,6 +98,14 @@
 - [x] **Rimozione Dati Fittizi** - Dashboard mostra solo dati reali utente
 - [x] **Navbar Homepage** - Rimossi link a pagine inesistenti
 
+### 🆕 Nuove Features v5.2 (Privacy Formule + UX)
+- [x] **Genere Solo M/F** - Onboarding e ProfileEdit solo Maschio/Femmina
+- [x] **Formule Proprietarie Nascoste** - BMR, TDEE, moltiplicatori non esposti
+- [x] **Rimosse kcal da Rate** - Velocità variazione peso senza valori calorici
+- [x] **Animazioni Staggered** - Caricamento alimenti con effetto cascata fluido
+- [x] **Loading State Ricerca** - Spinner durante digitazione con debounce
+- [x] **Gestione Throttling DynamoDB** - Retry exponential backoff + rate limiting
+
 ### 📦 Database Locali
 - [x] Database alimenti (1400+ items) da CSV originale
 - [x] Database attività fisiche (100+ items) con valori MET
