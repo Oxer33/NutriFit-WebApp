@@ -19,33 +19,30 @@ interface StepWeightChangeRateProps {
   updateData: (key: 'weightChangeRate', value: WeightChangeRate) => void
 }
 
-const rates: { value: WeightChangeRate; label: string; kgPerWeek: string; dailyCal: string; safety: string }[] = [
+// NOTA: Valori kcal rimossi dall'UI - formule proprietarie non esposte
+const rates: { value: WeightChangeRate; label: string; kgPerWeek: string; safety: string }[] = [
   { 
     value: 'RATE_025', 
     label: 'Molto graduale',
     kgPerWeek: '0.25 kg',
-    dailyCal: '~275 kcal',
     safety: 'Sicuro e sostenibile'
   },
   { 
     value: 'RATE_05', 
     label: 'Moderato',
     kgPerWeek: '0.5 kg',
-    dailyCal: '~550 kcal',
     safety: 'Raccomandato'
   },
   { 
     value: 'RATE_075', 
     label: 'Sostenuto',
     kgPerWeek: '0.75 kg',
-    dailyCal: '~825 kcal',
     safety: 'Richiede impegno'
   },
   { 
     value: 'RATE_1', 
     label: 'Intenso',
     kgPerWeek: '1 kg',
-    dailyCal: '~1100 kcal',
     safety: 'Solo per periodi brevi'
   },
 ]
@@ -71,7 +68,7 @@ export function StepWeightChangeRate({ data, updateData }: StepWeightChangeRateP
         A che ritmo vuoi {isLosing ? 'perdere' : isGaining ? 'aumentare' : 'variare'} peso?
       </h1>
       <p className="text-gray-500 mb-8">
-        Determina il {isLosing ? 'deficit' : 'surplus'} calorico giornaliero
+        Scegli il ritmo più adatto al tuo stile di vita
       </p>
 
       {/* Options */}
@@ -98,7 +95,7 @@ export function StepWeightChangeRate({ data, updateData }: StepWeightChangeRateP
                   {rate.label}
                 </span>
                 <span className="text-sm text-gray-500">
-                  {rate.kgPerWeek}/settimana • {rate.dailyCal}/giorno
+                  {rate.kgPerWeek}/settimana
                 </span>
               </div>
               <div className="text-right">

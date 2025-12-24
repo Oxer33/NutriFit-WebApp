@@ -41,8 +41,6 @@ import { useAppStore } from '@/store/useAppStore'
 import { 
   calculateBMI, 
   getBMICategory, 
-  calculateBMR, 
-  calculateTDEE,
   calculateCalorieGoal 
 } from '@/types'
 import { WeightHistoryDialog } from '@/components/app/WeightHistoryDialog'
@@ -74,15 +72,8 @@ export function ProfileTab() {
   
   const bmiInfo = useMemo(() => getBMICategory(bmi), [bmi])
   
-  const bmr = useMemo(() => {
-    if (!profile.onboardingCompleted) return 1500
-    return calculateBMR(profile)
-  }, [profile])
-  
-  const tdee = useMemo(() => {
-    if (!profile.onboardingCompleted) return 2000
-    return calculateTDEE(profile)
-  }, [profile])
+  // NOTA: BMR e TDEE calcolati internamente ma non esposti nell'UI
+  // per protezione della proprietà intellettuale delle formule
   
   const calorieGoal = useMemo(() => {
     if (!profile.onboardingCompleted) return 2000
@@ -158,8 +149,8 @@ export function ProfileTab() {
         />
         <StatCard
           icon={Activity}
-          label="TDEE"
-          value={`${tdee}`}
+          label="Fabbisogno"
+          value={`${calorieGoal}`}
           color="bg-orange-500"
           delay={0.25}
         />
@@ -210,7 +201,7 @@ export function ProfileTab() {
         </div>
       </motion.div>
       
-      {/* Metabolic Data Card */}
+      {/* Calorie Goal Card - formule non esposte per protezione IP */}
       <motion.div
         className="glass-card p-6"
         initial={{ opacity: 0, y: 20 }}
@@ -219,32 +210,15 @@ export function ProfileTab() {
       >
         <div className="flex items-center gap-3 mb-4">
           <Flame className="w-5 h-5 text-orange-500" />
-          <h3 className="font-semibold text-gray-900">Dati Metabolici</h3>
+          <h3 className="font-semibold text-gray-900">Il Tuo Piano Alimentare</h3>
         </div>
         
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="p-4 bg-orange-50 rounded-xl">
-            <Heart className="w-6 h-6 text-orange-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{bmr}</p>
-            <p className="text-xs text-gray-500">BMR (kcal)</p>
-          </div>
-          <div className="p-4 bg-blue-50 rounded-xl">
-            <Zap className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{tdee}</p>
-            <p className="text-xs text-gray-500">TDEE (kcal)</p>
-          </div>
-          <div className="p-4 bg-green-50 rounded-xl">
-            <Target className="w-6 h-6 text-green-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{calorieGoal}</p>
-            <p className="text-xs text-gray-500">Obiettivo (kcal)</p>
-          </div>
-        </div>
-        
-        <div className="mt-4 p-3 bg-gray-50 rounded-xl">
-          <p className="text-xs text-gray-500">
-            <strong>BMR</strong> = Metabolismo basale (calorie a riposo) •
-            <strong> TDEE</strong> = Fabbisogno totale giornaliero •
-            <strong> Obiettivo</strong> = Calorie per raggiungere il tuo goal
+        <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl">
+          <Target className="w-12 h-12 text-primary mx-auto mb-3" />
+          <p className="text-4xl font-bold text-gray-900">{calorieGoal}</p>
+          <p className="text-sm text-gray-500 mt-1">calorie giornaliere</p>
+          <p className="text-xs text-primary mt-3">
+            Calcolato in base ai tuoi dati personali e obiettivi
           </p>
         </div>
       </motion.div>

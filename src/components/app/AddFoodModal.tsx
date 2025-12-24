@@ -287,14 +287,32 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
                 {/* Search Results */}
                 {searchQuery.length >= 2 && !selectedFood && (
                   <div className="p-4">
-                    {searchResults.length > 0 ? (
+                    {/* Loading state durante digitazione */}
+                    {searchQuery !== debouncedQuery && (
+                      <div className="flex items-center justify-center py-8">
+                        <motion.div
+                          className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                        <span className="ml-3 text-gray-500">Ricerca in corso...</span>
+                      </div>
+                    )}
+                    
+                    {/* Risultati con animazione staggered fluida */}
+                    {searchQuery === debouncedQuery && searchResults.length > 0 ? (
                       <ul className="space-y-2">
                         {searchResults.map((food, index) => (
                           <motion.li
                             key={food.name}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.03 }}
+                            initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            transition={{ 
+                              delay: index * 0.05, // Più lento per effetto cascata
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 25
+                            }}
                           >
                             <button
                               onClick={() => handleSelectFood(food)}
@@ -319,13 +337,18 @@ export function AddFoodModal({ isOpen, onClose, mealType, date }: AddFoodModalPr
                           </motion.li>
                         ))}
                       </ul>
-                    ) : (
-                      <div className="text-center py-8 text-gray-400">
+                    ) : searchQuery === debouncedQuery && searchResults.length === 0 ? (
+                      <motion.div 
+                        className="text-center py-8 text-gray-400"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
                         <Utensils className="w-12 h-12 mx-auto mb-3 opacity-50" />
                         <p>Nessun alimento trovato</p>
                         <p className="text-sm mt-1">Prova con un altro termine</p>
-                      </div>
-                    )}
+                      </motion.div>
+                    ) : null}
                   </div>
                 )}
                 

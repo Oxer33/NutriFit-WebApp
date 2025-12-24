@@ -9,8 +9,6 @@
 import { motion } from 'framer-motion'
 import { Sparkles, Flame, Target, Brain } from 'lucide-react'
 import { 
-  calculateBMR, 
-  calculateTDEE, 
   calculateCalorieGoal,
   calculateBMI,
   getBMICategory,
@@ -57,8 +55,7 @@ export function StepWelcome({ data }: StepWelcomeProps) {
     updatedAt: new Date().toISOString()
   } : null
 
-  const bmr = profile ? calculateBMR(profile) : 0
-  const tdee = profile ? calculateTDEE(profile) : 0
+  // NOTA: BMR e TDEE calcolati internamente ma non mostrati - formule proprietarie
   const calorieGoal = profile ? calculateCalorieGoal(profile) : 0
   const bmi = data.weightKg && data.heightCm 
     ? calculateBMI(data.weightKg, data.heightCm) 
@@ -136,18 +133,18 @@ export function StepWelcome({ data }: StepWelcomeProps) {
         
         <div className="space-y-2 text-gray-600">
           <div className="flex justify-between">
-            <span>Metabolismo basale (BMR):</span>
-            <span className="font-medium">{bmr} kcal</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Fabbisogno totale (TDEE):</span>
-            <span className="font-medium">{tdee} kcal</span>
+            <span>Calorie giornaliere:</span>
+            <span className="font-medium text-primary">{calorieGoal} kcal</span>
           </div>
           <div className="flex justify-between">
             <span>Obiettivo:</span>
             <span className="font-medium text-primary">
               {data.goal ? goalLabels[data.goal] : '-'}
             </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Indice massa corporea:</span>
+            <span className="font-medium">{bmi.toFixed(1)} ({bmiCategory.label})</span>
           </div>
         </div>
       </motion.div>

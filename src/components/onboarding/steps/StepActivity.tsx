@@ -16,20 +16,19 @@ interface StepActivityProps {
   updateData: (key: 'activityLevel', value: ActivityLevel) => void
 }
 
-const activityLevels: { value: ActivityLevel; label: string; description: string; icon: React.ReactNode; multiplier: string }[] = [
+// NOTA: Moltiplicatori rimossi dall'UI - formule proprietarie non esposte
+const activityLevels: { value: ActivityLevel; label: string; description: string; icon: React.ReactNode }[] = [
   { 
     value: 'SEDENTARY', 
     label: 'Sedentario', 
     description: 'Lavoro d\'ufficio, poco movimento quotidiano',
-    icon: <Sofa className="w-7 h-7" />,
-    multiplier: '×1.2'
+    icon: <Sofa className="w-7 h-7" />
   },
   { 
     value: 'ACTIVE', 
     label: 'Attivo', 
     description: 'Esercizio 2-5 volte a settimana',
-    icon: <Dumbbell className="w-7 h-7" />,
-    multiplier: '×1.55'
+    icon: <Dumbbell className="w-7 h-7" />
   },
 ]
 
@@ -51,7 +50,7 @@ export function StepActivity({ data, updateData }: StepActivityProps) {
         Quanto sei attivo/a?
       </h1>
       <p className="text-gray-500 mb-8">
-        Il livello di attività determina il moltiplicatore del metabolismo
+        Ci aiuta a personalizzare il tuo piano alimentare
       </p>
 
       {/* Options */}
@@ -88,26 +87,29 @@ export function StepActivity({ data, updateData }: StepActivityProps) {
                 {level.description}
               </span>
             </div>
-            <div className={cn(
-              "px-3 py-1 rounded-lg text-sm font-bold",
-              data.activityLevel === level.value
-                ? "bg-primary text-white"
-                : "bg-gray-100 text-gray-500"
-            )}>
-              {level.multiplier}
-            </div>
+            {data.activityLevel === level.value && (
+              <motion.div 
+                className="w-6 h-6 bg-primary rounded-full flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+              >
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </motion.div>
+            )}
           </motion.button>
         ))}
       </div>
 
-      {/* Info */}
+      {/* Info - senza riferimenti a formule */}
       <motion.div
         className="mt-6 p-4 bg-amber-50 rounded-xl text-sm text-amber-700"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        💡 Il moltiplicatore viene applicato al tuo metabolismo basale per calcolare il fabbisogno totale
+        💡 Il tuo livello di attività ci aiuta a calcolare il fabbisogno calorico ottimale per te
       </motion.div>
     </div>
   )

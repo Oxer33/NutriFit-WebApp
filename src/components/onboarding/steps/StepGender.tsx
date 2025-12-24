@@ -16,6 +16,7 @@ interface StepGenderProps {
   updateData: (key: 'gender', value: Gender) => void
 }
 
+// Solo Maschio e Femmina - scientificamente corretto per calcoli metabolici
 const genders: { value: Gender; label: string; icon: React.ReactNode; color: string }[] = [
   { 
     value: 'M', 
@@ -28,12 +29,6 @@ const genders: { value: Gender; label: string; icon: React.ReactNode; color: str
     label: 'Donna', 
     icon: <User className="w-8 h-8" />,
     color: 'bg-pink-500'
-  },
-  { 
-    value: 'O', 
-    label: 'Altro', 
-    icon: <Users className="w-8 h-8" />,
-    color: 'bg-purple-500'
   },
 ]
 
