@@ -50,6 +50,7 @@ import { CustomFoodsManager } from '@/components/app/CustomFoodsManager'
 import { MenstrualCycleDialog } from '@/components/app/MenstrualCycleDialog'
 import { DietarySurveyDialog } from '@/components/app/DietarySurveyDialog'
 import { WaterReminderConfigDialog } from '@/components/app/WaterReminderConfigDialog'
+import { ProfileEditDialog } from '@/components/app/ProfileEditDialog'
 
 // =========== COMPONENT ===========
 
@@ -58,6 +59,7 @@ export function ProfileTab() {
   const { profile } = useAppStore()
   
   // Dialog states
+  const [showProfileEdit, setShowProfileEdit] = useState(false)
   const [showWeightHistory, setShowWeightHistory] = useState(false)
   const [showCustomFoods, setShowCustomFoods] = useState(false)
   const [showMenstrualCycle, setShowMenstrualCycle] = useState(false)
@@ -122,7 +124,10 @@ export function ProfileTab() {
               </span>
             </div>
           </div>
-          <button className="p-2 hover:bg-white/50 rounded-xl transition-colors">
+          <button 
+            onClick={() => setShowProfileEdit(true)}
+            className="p-2 hover:bg-white/50 rounded-xl transition-colors"
+          >
             <Edit3 className="w-5 h-5 text-gray-400" />
           </button>
         </div>
@@ -340,6 +345,11 @@ export function ProfileTab() {
       </motion.div>
       
       {/* Dialogs */}
+      <ProfileEditDialog
+        isOpen={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
+      />
+      
       <WeightHistoryDialog
         isOpen={showWeightHistory}
         onClose={() => setShowWeightHistory(false)}
