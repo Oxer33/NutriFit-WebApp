@@ -1,18 +1,17 @@
 /**
  * ============================================
- * EMAIL SERVICE - INVIO EMAIL VERIFICA
+ * EMAIL SERVICE - AWS SES
  * ============================================
  * 
- * Servizio per l'invio di email transazionali:
+ * Servizio per l'invio di email transazionali via AWS SES:
  * - Email di verifica account
  * - Email di reset password
  * - Email di benvenuto
  * 
- * Usa Nodemailer con SMTP (configurabile per qualsiasi provider)
- * Supporta: Gmail, Outlook, AWS SES, Mailgun, SendGrid, etc.
+ * Usa AWS SDK v3 per SES nella stessa region di DynamoDB (eu-north-1)
  */
 
-import nodemailer from 'nodemailer'
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 
 // =========== TYPES ===========
 
@@ -23,69 +22,79 @@ interface EmailOptions {
   text?: string
 }
 
-// =========== TRANSPORTER ===========
+// =========== SES CLIENT ===========
 
 /**
- * Crea transporter Nodemailer
- * Configurabile via variabili d'ambiente
+ * Client SES singleton
+ * Usa stesse credenziali AWS di DynamoDB
  */
-function createTransporter() {
-  // Verifica configurazione
-  const host = process.env.SMTP_HOST
-  const port = parseInt(process.env.SMTP_PORT || '587')
-  const user = process.env.SMTP_USER
-  const pass = process.env.SMTP_PASS
-  
-  if (!host || !user || !pass) {
-    console.warn('[Email] SMTP non configurato. Le email non verranno inviate.')
-    return null
+const sesClient = new SESClient({
+  region: process.env.NEXT_PUBLIC_AWS_REGION || 'eu-north-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
   }
-  
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465, // true per 465, false per altri port
-    auth: {
-      user,
-      pass
-    }
-  })
-}
+})
+
+// Email mittente verificata in SES
+const FROM_EMAIL = process.env.SES_FROM_EMAIL || 'noreply@nutrifit.app'
+const FROM_NAME = process.env.SES_FROM_NAME || 'NutriFit'
 
 // =========== SEND EMAIL ===========
 
 /**
- * Invia email generica
+ * Invia email via AWS SES
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
-  const transporter = createTransporter()
-  
-  if (!transporter) {
+  // Verifica configurazione AWS
+  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
     // In sviluppo, logga email invece di inviarla
-    console.log('[Email] === EMAIL DEBUG ===')
+    console.log('[Email SES] === EMAIL DEBUG (SES non configurato) ===')
     console.log(`To: ${options.to}`)
     console.log(`Subject: ${options.subject}`)
     console.log(`Body: ${options.text || 'HTML email'}`)
-    console.log('[Email] ==================')
+    console.log('[Email SES] ==========================================')
     return true // Simula successo in dev
   }
   
   try {
-    const fromName = process.env.SMTP_FROM_NAME || 'NutriFit'
-    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER
-    
-    await transporter.sendMail({
-      from: `"${fromName}" <${fromEmail}>`,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      text: options.text
+    const command = new SendEmailCommand({
+      Source: `${FROM_NAME} <${FROM_EMAIL}>`,
+      Destination: {
+        ToAddresses: [options.to]
+      },
+      Message: {
+        Subject: {
+          Data: options.subject,
+          Charset: 'UTF-8'
+        },
+        Body: {
+          Html: {
+            Data: options.html,
+            Charset: 'UTF-8'
+          },
+          ...(options.text && {
+            Text: {
+              Data: options.text,
+              Charset: 'UTF-8'
+            }
+          })
+        }
+      }
     })
     
-    console.log(`[Email] Inviata a ${options.to}`)
+    await sesClient.send(command)
+    console.log(`[Email SES] Inviata a ${options.to}`)
     return true
-  } catch (error) {
-    console.error('[Email] Errore invio:', error)
+    
+  } catch (error: any) {
+    console.error('[Email SES] Errore invio:', error.message || error)
+    
+    // In sandbox mode, SES può rifiutare email a indirizzi non verificati
+    if (error.name === 'MessageRejected') {
+      console.warn('[Email SES] Email rifiutata - verifica che il destinatario sia verificato in SES sandbox')
+    }
+    
     return false
   }
 }
