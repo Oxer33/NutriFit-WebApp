@@ -84,11 +84,19 @@
 - [x] **Registrazione Utenti** - Form con validazione password forte
 - [x] **Verifica Email** - Link di verifica via email (token 24h)
 - [x] **Login/Logout** - Sessioni JWT sicure (30 giorni)
-- [x] **Email Service** - Template email professionali (Nodemailer)
+- [x] **Email Service** - AWS SES per email transazionali
 - [x] **Middleware Protezione** - Route /app protette (redirect login)
 - [x] **Storico Peso** - API /api/users/{id}/weight con statistiche
 - [x] **Password Hash** - bcrypt con 12 salt rounds
 - [x] **Session Provider** - Gestione sessione lato client
+
+### 🆕 Nuove Features v5.1 (Sicurezza + UX)
+- [x] **Sicurezza API** - Controllo autorizzazione su tutte le route utente
+- [x] **AppNavbar** - Navbar dedicata per /app senza link a pagine inesistenti
+- [x] **ProfileEditDialog** - Modifica dati profilo (nome, età, peso, obiettivi)
+- [x] **Verifica Profilo** - Avviso se profilo non completo prima di usare app
+- [x] **Rimozione Dati Fittizi** - Dashboard mostra solo dati reali utente
+- [x] **Navbar Homepage** - Rimossi link a pagine inesistenti
 
 ### 📦 Database Locali
 - [x] Database alimenti (1400+ items) da CSV originale
