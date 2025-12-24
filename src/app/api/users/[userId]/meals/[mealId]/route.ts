@@ -6,11 +6,30 @@
  * Endpoints:
  * - PUT /api/users/{userId}/meals/{mealId} - Modifica pasto
  * - DELETE /api/users/{userId}/meals/{mealId} - Elimina pasto
+ * 
+ * SICUREZZA: Verifica che l'utente acceda solo ai propri dati
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { updateMeal, deleteMeal, MEAL_TYPES } from '@/lib/mealService'
 import type { MealTypeDB } from '@/lib/dynamodb'
+
+// =========== HELPER: Verifica autorizzazione ===========
+
+async function checkAuthorization(userId: string) {
+  const session = await auth()
+  
+  if (!session?.user?.id) {
+    return { authorized: false, error: 'Non autenticato', status: 401 }
+  }
+  
+  if (session.user.id !== userId) {
+    return { authorized: false, error: 'Accesso non autorizzato', status: 403 }
+  }
+  
+  return { authorized: true, session }
+}
 
 // =========== PUT - MODIFICA PASTO ===========
 
@@ -28,6 +47,15 @@ export async function PUT(
         success: false, 
         error: 'userId e mealId richiesti' 
       }, { status: 400 })
+    }
+    
+    // SICUREZZA: Verifica autorizzazione
+    const authCheck = await checkAuthorization(userId)
+    if (!authCheck.authorized) {
+      return NextResponse.json({
+        success: false,
+        error: authCheck.error
+      }, { status: authCheck.status })
     }
 
     // Campi obbligatori per identificare il pasto
@@ -111,6 +139,15 @@ export async function DELETE(
         success: false, 
         error: 'userId e mealId richiesti' 
       }, { status: 400 })
+    }
+    
+    // SICUREZZA: Verifica autorizzazione
+    const authCheck = await checkAuthorization(userId)
+    if (!authCheck.authorized) {
+      return NextResponse.json({
+        success: false,
+        error: authCheck.error
+      }, { status: authCheck.status })
     }
 
     if (!date || !mealType) {
