@@ -52,16 +52,21 @@
      │                     │
      │                     ▼
      │              ┌─────────────┐
-     │              │   Email     │
-     └─────────────▶│   Service   │
+     │              │  AWS SES    │ (Email transazionali)
+     └─────────────▶│  eu-north-1 │
                     └─────────────┘
 ```
 
 **Flusso Autenticazione:**
-1. Utente si registra → Email verifica inviata
+1. Utente si registra → Email verifica via AWS SES
 2. Click link verifica → Account attivato
 3. Login → JWT session (30 giorni)
 4. Middleware protegge route /app
+
+**AWS SES Configuration:**
+- Region: eu-north-1 (stessa di DynamoDB)
+- Email mittente deve essere verificata in SES
+- In sandbox mode: anche destinatari devono essere verificati
 
 ---
 
